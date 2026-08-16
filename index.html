@@ -159,17 +159,26 @@
     gap: 12px;
   }
 
-  /* Event Card - 3 Spalten Layout */
+  /* Event Card - Responsive Layout */
   .event-card {
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: 14px;
     padding: 14px;
-    display: grid;
-    grid-template-columns: 65px 1fr 105px;
-    gap: 12px;
-    align-items: start;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
     transition: all 0.2s;
+  }
+
+  @media (min-width: 480px) {
+    .event-card {
+      display: grid;
+      grid-template-columns: 65px 1fr 105px;
+      gap: 12px;
+      align-items: start;
+      flex-direction: row;
+    }
   }
 
   .event-card:hover {
@@ -265,6 +274,13 @@
   .event-button {
     display: flex;
     align-items: flex-start;
+    width: 100%;
+  }
+
+  @media (min-width: 480px) {
+    .event-button {
+      width: auto;
+    }
   }
 
   .event-btn {
@@ -280,6 +296,13 @@
     transition: opacity 0.2s;
     color: #fff;
     white-space: nowrap;
+    width: 100%;
+  }
+
+  @media (min-width: 480px) {
+    .event-btn {
+      width: auto;
+    }
   }
 
   .event-card.type-tournament .event-btn { background: var(--red); }

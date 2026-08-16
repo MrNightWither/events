@@ -676,13 +676,19 @@ document.getElementById('registrationForm').addEventListener('submit', async (e)
 
 async function load() {
   try {
-    const [evSnap, streamSnap] = await Promise.all([
-      getDocs(collection(db, 'events')),
-      getDocs(collection(db, 'streamingplan'))
-    ]);
-    
+    // Events laden
+    const evSnap = await getDocs(collection(db, 'events'));
     const events = evSnap.docs.map(d => ({id: d.id, ...d.data()}));
-    const streams = streamSnap.docs.map(d => ({id: d.id, ...d.data()})).sort((a, b) => (a.order || 0) - (b.order || 0));
+    
+    // Streaming Plan laden (mit Error Handling)
+    let streams = [];
+    try {
+      const streamSnap = await getDocs(collection(db, 'streamingplan'));
+      streams = streamSnap.docs.map(d => ({id: d.id, ...d.data()})).sort((a, b) => (a.order || 0) - (b.order || 0));
+    } catch (streamError) {
+      console.warn('Streaming Plan konnte nicht geladen werden:', streamError);
+      streams = [];
+    }
     
     document.getElementById('loading').style.display = 'none';
     
@@ -731,8 +737,8 @@ async function load() {
       `).join('');
     }
   } catch(e) {
-    console.error(e);
-    document.getElementById('loading').innerHTML = '<p style="color:#f87171;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.2em">Fehler beim Laden.</p>';
+    console.error('Fehler beim Laden:', e);
+    document.getElementById('loading').innerHTML = '<p style="color:#f87171;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.2em">Fehler beim Laden. Schau auf Discord vorbei!</p>';
   }
 }
 

@@ -15,7 +15,7 @@
     --border: rgba(255,255,255,0.07);
     --gold: #c9a84c;
     --text: #e8e8e8;
-    --muted: #666;
+    --muted: #888;
     --red: #dc2626;
     --green: #22c55e;
     --blue: #3b82f6;
@@ -159,11 +159,16 @@
     gap: 12px;
   }
 
+  /* Event Card - 3 Spalten Layout */
   .event-card {
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: 14px;
-    padding: 16px;
+    padding: 14px;
+    display: grid;
+    grid-template-columns: 65px 1fr 105px;
+    gap: 12px;
+    align-items: start;
     transition: all 0.2s;
   }
 
@@ -172,33 +177,23 @@
     box-shadow: 0 0 12px rgba(201,168,76,0.1);
   }
 
-  /* Event Card Layout */
-  .event-top {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 12px;
+  /* Linke Spalte - Zeit & Datum */
+  .event-time {
+    font-family: monospace;
+    font-size: 0.8rem;
+    color: var(--gold);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-align: left;
+    line-height: 1.6;
   }
 
-  .event-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
+  /* Mittlere Spalte - Inhalt */
+  .event-content {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.1rem;
-    flex-shrink: 0;
-  }
-
-  .event-card.type-tournament .event-icon { background: rgba(220,38,38,0.2); }
-  .event-card.type-verlosung .event-icon { background: rgba(34,197,94,0.2); }
-  .event-card.type-community .event-icon { background: rgba(59,130,246,0.2); }
-  .event-card.type-stream .event-icon { background: rgba(168,85,247,0.2); }
-  .event-card.type-challenge .event-icon { background: rgba(249,115,22,0.2); }
-  .event-card.type-sonstiges .event-icon { background: rgba(107,114,128,0.2); }
-
-  .event-details {
-    flex: 1;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
   }
 
   .event-title {
@@ -208,14 +203,20 @@
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: #fff;
-    margin-bottom: 4px;
+    line-height: 1.2;
+  }
+
+  .event-meta {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    font-size: 0.7rem;
   }
 
   .event-type {
-    font-size: 0.65rem;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    font-weight: 600;
+    font-weight: 700;
   }
 
   .event-card.type-tournament .event-type { color: var(--red); }
@@ -225,39 +226,25 @@
   .event-card.type-challenge .event-type { color: var(--orange); }
   .event-card.type-sonstiges .event-type { color: var(--gray); }
 
-  .event-desc {
-    font-size: 0.75rem;
-    color: var(--muted);
-    margin-top: 8px;
-    line-height: 1.4;
-  }
-
-  .event-bottom {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid var(--border);
-  }
-
-  .event-meta {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .event-date {
+  .event-prize-line {
     font-size: 0.7rem;
+    display: flex;
+    gap: 3px;
+    align-items: center;
+    flex-wrap: nowrap;
+    width: 100%;
+  }
+
+  .event-prize-label {
     color: var(--muted);
-    font-family: monospace;
-    text-transform: uppercase;
+    white-space: nowrap;
+    font-size: 0.65rem;
   }
 
   .event-prize {
     font-family: Rajdhani, sans-serif;
     font-weight: 700;
-    font-size: 0.8rem;
+    white-space: nowrap;
   }
 
   .event-card.type-tournament .event-prize { color: var(--red); }
@@ -267,18 +254,32 @@
   .event-card.type-challenge .event-prize { color: var(--orange); }
   .event-card.type-sonstiges .event-prize { color: var(--gray); }
 
+  .event-desc {
+    font-size: 0.65rem;
+    color: var(--muted);
+    line-height: 1.4;
+    margin-top: 4px;
+  }
+
+  /* Rechte Spalte - Button */
+  .event-button {
+    display: flex;
+    align-items: flex-start;
+  }
+
   .event-btn {
-    padding: 8px 16px;
+    padding: 10px 12px;
     font-family: Rajdhani, sans-serif;
     font-weight: 700;
-    font-size: 0.7rem;
-    letter-spacing: 0.1em;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     border: none;
     border-radius: 8px;
     cursor: pointer;
     transition: opacity 0.2s;
     color: #fff;
+    white-space: nowrap;
   }
 
   .event-card.type-tournament .event-btn { background: var(--red); }
@@ -629,12 +630,12 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const eventTypes = {
-  tournament: { icon: '🏆', label: 'Tournament' },
-  verlosung: { icon: '🎁', label: 'Verlosung' },
-  community: { icon: '🎮', label: 'Community-Event' },
-  stream: { icon: '🎤', label: 'Stream-Event' },
-  challenge: { icon: '🎯', label: 'Challenge' },
-  sonstiges: { icon: '📅', label: 'Sonstiges' }
+  tournament: { icon: '🏆', label: 'TURNIER' },
+  verlosung: { icon: '🎁', label: 'VERLOSUNG' },
+  community: { icon: '🎮', label: 'COMMUNITY' },
+  stream: { icon: '🎤', label: 'STREAM' },
+  challenge: { icon: '🎯', label: 'CHALLENGE' },
+  sonstiges: { icon: '📅', label: 'SONSTIGES' }
 };
 
 function esc(str) {
@@ -668,12 +669,10 @@ document.getElementById('registrationForm').addEventListener('submit', async (e)
   const formStatus = document.getElementById('formStatus');
   
   try {
-    // Webhook-URLs basierend auf Event-Typ auswählen
     const webhookUrl = eventType === 'tournament' 
       ? 'https://discord.com/api/webhooks/1538545515984064552/dWflH_PLfM15F9UcdiEAgoQ9ejjzM5tApkRvY1EJB7hPy53A-N6MZgzwfBFOgCjpufGE'
       : 'https://discord.com/api/webhooks/1506261180388343921/cFzGnOcfY692D--xD3VTMFLYNFIRYa_MYHfhchQwD5q68bvZOOT8fUx9MIvCiLTqcUf0';
     
-    // Discord-Nachricht vorbereiten
     let description = `**Username:** ${username}\n**Discord:** ${discordName}`;
     if (eventType === 'tournament' && gameName) {
       description += `\n**In-Game:** ${gameName}`;
@@ -683,13 +682,12 @@ document.getElementById('registrationForm').addEventListener('submit', async (e)
       embeds: [{
         title: '🎮 Neue Anmeldung',
         description: description,
-        color: eventType === 'tournament' ? 16711680 : 34816, // Rot für Tournament, Grün für andere
+        color: eventType === 'tournament' ? 16711680 : 34816,
         footer: { text: 'NightWither Unity Events' },
         timestamp: new Date().toISOString()
       }]
     };
     
-    // Discord Webhook aufrufen
     const response = await fetch(webhookUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -697,13 +695,11 @@ document.getElementById('registrationForm').addEventListener('submit', async (e)
     });
     
     if (response.ok) {
-      formStatus.textContent = '✓ Anmeldung erfolgreich! Nachricht an Discord gesendet.';
+      formStatus.textContent = '✓ Anmeldung erfolgreich!';
       formStatus.classList.add('success');
       formStatus.classList.remove('error');
       
-      setTimeout(() => {
-        closeModal();
-      }, 1500);
+      setTimeout(() => closeModal(), 1500);
     } else {
       throw new Error('Discord Webhook fehlgeschlagen');
     }
@@ -740,22 +736,25 @@ async function load() {
       document.getElementById('eventsList').innerHTML = events.map(ev => {
         const typeInfo = eventTypes[ev.type] || eventTypes.sonstiges;
         const typeClass = ev.type || 'sonstiges';
+        const date = ev.eventDate ? new Date(ev.eventDate) : null;
+        const dateStr = date ? date.toLocaleDateString('de-DE') : 'TBA';
+        const timeStr = date ? date.toLocaleTimeString('de-DE', {hour: '2-digit', minute:'2-digit'}) : '--:--';
         
         return `
           <div class="event-card type-${typeClass} fade-in">
-            <div class="event-top">
-              <div class="event-icon">${typeInfo.icon}</div>
-              <div class="event-details">
-                <div class="event-title">${esc(ev.title)}</div>
+            <div class="event-time">${dateStr}<br/>${timeStr}</div>
+            <div class="event-content">
+              <div class="event-title">${esc(ev.title)}</div>
+              <div class="event-meta">
                 <div class="event-type">${typeInfo.label}</div>
               </div>
-            </div>
-            ${ev.description ? `<div class="event-desc">${esc(ev.description)}</div>` : ''}
-            <div class="event-bottom">
-              <div class="event-meta">
-                ${ev.eventDate ? `<div class="event-date">${new Date(ev.eventDate).toLocaleDateString('de-DE')}</div>` : ''}
-                <div class="event-prize">${esc(ev.prizePool || 'Ruhm & Ehre')}</div>
+              <div class="event-prize-line">
+                <span class="event-prize-label">Preis:</span>
+                <span class="event-prize">${esc(ev.prizePool || 'Ruhm & Ehre')}</span>
               </div>
+              ${ev.description ? `<div class="event-desc">${esc(ev.description)}</div>` : ''}
+            </div>
+            <div class="event-button">
               <button class="event-btn" onclick="openModal('${ev.id}', '${ev.type}', '${esc(ev.title)}')">Anmelden →</button>
             </div>
           </div>

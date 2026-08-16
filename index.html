@@ -617,16 +617,16 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.0/firebas
 import { getFirestore, collection, getDocs } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js';
 
 const firebaseConfig = {
-  projectId: "gen-lang-client-0269598757",
-  appId: "1:611229672001:web:0846e5339a913c5948dcc0",
-  apiKey: "AIzaSyA8bBWM_HVrWLqmo3zzEUTHiIhm6_8o_nI",
-  authDomain: "gen-lang-client-0269598757.firebaseapp.com",
-  storageBucket: "gen-lang-client-0269598757.firebasestorage.app",
-  messagingSenderId: "611229672001"
+  apiKey: "AIzaSyCGZTtokmCpu9CTDRWOi5HHO4CGO-BZgGU",
+  authDomain: "adminpannel-f0aab.firebaseapp.com",
+  projectId: "adminpannel-f0aab",
+  storageBucket: "adminpannel-f0aab.firebasestorage.app",
+  messagingSenderId: "373454919812",
+  appId: "1:373454919812:web:281bd757fb982bb24f4ad1"
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app, "ai-studio-e11fd13d-64b0-437c-8906-e6481c206003");
+const db = getFirestore(app);
 
 const eventTypes = {
   tournament: { icon: '🏆', label: 'Tournament' },
@@ -719,7 +719,7 @@ async function load() {
       document.getElementById('streamingSection').style.display = 'flex';
       document.getElementById('streamingList').innerHTML = streams.map(stream => `
         <div class="stream-card fade-in">
-          <div class="stream-time">${stream.time || '--:--'}</div>
+          <div class="stream-time">${stream.day || 'Tag'}<br/>${stream.time || '--:--'}</div>
           <div class="stream-info">
             <div class="stream-game">${esc(stream.game || 'TBA')}</div>
             <div class="stream-platform">${esc(stream.platform || 'Twitch & TikTok')}</div>

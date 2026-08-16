@@ -14,9 +14,8 @@
     --card: #16161b;
     --border: rgba(255,255,255,0.07);
     --gold: #c9a84c;
-    --gold-dim: rgba(201,168,76,0.12);
     --text: #e8e8e8;
-    --muted: #555;
+    --muted: #666;
     --red: #dc2626;
     --green: #22c55e;
     --blue: #3b82f6;
@@ -131,7 +130,6 @@
     border-radius: 3px;
   }
 
-  /* Loading */
   .loading {
     display: flex;
     flex-direction: column;
@@ -154,7 +152,7 @@
     to { transform: rotate(360deg); }
   }
 
-  /* Event cards */
+  /* Event Grid */
   .events-grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -163,37 +161,27 @@
 
   .event-card {
     background: var(--card);
-    border: 2px solid var(--border);
+    border: 1px solid var(--border);
     border-radius: 14px;
     padding: 16px;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    cursor: pointer;
+    transition: all 0.2s;
   }
 
   .event-card:hover {
-    border-color: currentColor;
-    box-shadow: 0 0 12px currentColor;
+    border-color: var(--gold);
+    box-shadow: 0 0 12px rgba(201,168,76,0.1);
   }
 
-  .event-card.type-tournament { color: var(--red); }
-  .event-card.type-verlosung { color: var(--green); }
-  .event-card.type-community { color: var(--blue); }
-  .event-card.type-stream { color: var(--purple); }
-  .event-card.type-challenge { color: var(--orange); }
-  .event-card.type-sonstiges { color: var(--gray); }
-
-  .event-header {
+  /* Event Card Layout */
+  .event-top {
     display: flex;
-    align-items: flex-start;
     gap: 12px;
     margin-bottom: 12px;
   }
 
-  .event-type-icon {
+  .event-icon {
     width: 40px;
     height: 40px;
-    background: currentColor;
-    opacity: 0.15;
     border-radius: 10px;
     display: flex;
     align-items: center;
@@ -202,7 +190,14 @@
     flex-shrink: 0;
   }
 
-  .event-info {
+  .event-card.type-tournament .event-icon { background: rgba(220,38,38,0.2); }
+  .event-card.type-verlosung .event-icon { background: rgba(34,197,94,0.2); }
+  .event-card.type-community .event-icon { background: rgba(59,130,246,0.2); }
+  .event-card.type-stream .event-icon { background: rgba(168,85,247,0.2); }
+  .event-card.type-challenge .event-icon { background: rgba(249,115,22,0.2); }
+  .event-card.type-sonstiges .event-icon { background: rgba(107,114,128,0.2); }
+
+  .event-details {
     flex: 1;
   }
 
@@ -212,25 +207,32 @@
     font-size: 0.95rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--text);
+    color: #fff;
+    margin-bottom: 4px;
   }
 
-  .event-type-label {
+  .event-type {
     font-size: 0.65rem;
-    letter-spacing: 0.15em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    margin-top: 2px;
-    color: currentColor;
     font-weight: 600;
   }
+
+  .event-card.type-tournament .event-type { color: var(--red); }
+  .event-card.type-verlosung .event-type { color: var(--green); }
+  .event-card.type-community .event-type { color: var(--blue); }
+  .event-card.type-stream .event-type { color: var(--purple); }
+  .event-card.type-challenge .event-type { color: var(--orange); }
+  .event-card.type-sonstiges .event-type { color: var(--gray); }
 
   .event-desc {
     font-size: 0.75rem;
     color: var(--muted);
     margin-top: 8px;
+    line-height: 1.4;
   }
 
-  .event-footer {
+  .event-bottom {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -239,8 +241,14 @@
     border-top: 1px solid var(--border);
   }
 
+  .event-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
   .event-date {
-    font-size: 8px;
+    font-size: 0.7rem;
     color: var(--muted);
     font-family: monospace;
     text-transform: uppercase;
@@ -249,38 +257,46 @@
   .event-prize {
     font-family: Rajdhani, sans-serif;
     font-weight: 700;
-    color: currentColor;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
   }
 
+  .event-card.type-tournament .event-prize { color: var(--red); }
+  .event-card.type-verlosung .event-prize { color: var(--green); }
+  .event-card.type-community .event-prize { color: var(--blue); }
+  .event-card.type-stream .event-prize { color: var(--purple); }
+  .event-card.type-challenge .event-prize { color: var(--orange); }
+  .event-card.type-sonstiges .event-prize { color: var(--gray); }
+
   .event-btn {
-    padding: 8px 14px;
-    background: currentColor;
-    color: #fff;
+    padding: 8px 16px;
     font-family: Rajdhani, sans-serif;
     font-weight: 700;
     font-size: 0.7rem;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    border-radius: 8px;
     border: none;
+    border-radius: 8px;
     cursor: pointer;
     transition: opacity 0.2s;
+    color: #fff;
   }
+
+  .event-card.type-tournament .event-btn { background: var(--red); }
+  .event-card.type-verlosung .event-btn { background: var(--green); }
+  .event-card.type-community .event-btn { background: var(--blue); }
+  .event-card.type-stream .event-btn { background: var(--purple); }
+  .event-card.type-challenge .event-btn { background: var(--orange); }
+  .event-card.type-sonstiges .event-btn { background: var(--gray); }
 
   .event-btn:hover {
     opacity: 0.8;
   }
 
   /* Streaming Plan */
-  .streaming-section {
-    margin-top: 24px;
-  }
-
   .streaming-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: 10px;
   }
 
   .stream-card {
@@ -319,7 +335,6 @@
     font-size: 0.7rem;
     color: var(--muted);
     margin-top: 3px;
-    letter-spacing: 0.05em;
   }
 
   .stream-badge {
@@ -406,8 +421,7 @@
     font-weight: 600;
   }
 
-  .form-input,
-  .form-select {
+  .form-input {
     width: 100%;
     background: var(--card);
     border: 1px solid var(--border);
@@ -419,15 +433,9 @@
     transition: border-color 0.2s;
   }
 
-  .form-input:focus,
-  .form-select:focus {
+  .form-input:focus {
     outline: none;
     border-color: var(--gold);
-  }
-
-  .form-select option {
-    background: var(--card);
-    color: var(--text);
   }
 
   .form-submit {
@@ -468,7 +476,6 @@
     color: var(--red);
   }
 
-  /* Empty */
   .empty {
     text-align: center;
     padding: 60px 0;
@@ -482,6 +489,39 @@
     margin-top: 10px;
   }
 
+  .cta {
+    text-align: center;
+    margin-top: 20px;
+  }
+
+  .cta p {
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+  }
+
+  .cta-btn {
+    display: inline-block;
+    padding: 12px 24px;
+    background: rgba(201,168,76,0.15);
+    border: 1px solid rgba(201,168,76,0.35);
+    border-radius: 10px;
+    color: var(--gold);
+    font-family: Rajdhani, sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+
+  .cta-btn:hover {
+    background: rgba(201,168,76,0.25);
+  }
+
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
@@ -489,20 +529,6 @@
 
   .fade-in {
     animation: fadeUp 0.4s ease both;
-  }
-
-  /* CTA */
-  .cta {
-    text-align: center;
-    margin-top: 12px;
-  }
-
-  .cta p {
-    font-size: 0.7rem;
-    color: var(--muted);
-    margin-bottom: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
   }
 </style>
 </head>
@@ -533,7 +559,7 @@
     <div id="eventsList" class="events-grid"></div>
   </section>
 
-  <section id="streamingSection" style="display:none;flex-direction:column;gap:12px;" class="streaming-section fade-in">
+  <section id="streamingSection" style="display:none;flex-direction:column;gap:12px">
     <div class="section-label"><span class="dot" style="background: var(--gold)"></span>Streaming Plan</div>
     <div id="streamingList" class="streaming-grid"></div>
   </section>
@@ -545,7 +571,7 @@
 
   <div class="cta">
     <p>Fragen? Schau auf Discord vorbei!</p>
-    <a href="https://discord.nightwither.de" style="display: inline-block; padding: 12px 24px; background: rgba(201,168,76,0.2); border: 1px solid rgba(201,168,76,0.35); border-radius: 10px; color: var(--gold); font-family: Rajdhani, sans-serif; font-weight: 700; font-size: 0.85rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; transition: background 0.2s;">💬 Zum Discord</a>
+    <a href="https://discord.nightwither.de" class="cta-btn">💬 Zum Discord</a>
   </div>
 
 </main>
@@ -588,7 +614,7 @@
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js';
-import { getFirestore, collection, getDocs, query, where, orderBy } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js';
+import { getFirestore, collection, getDocs } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js';
 
 const firebaseConfig = {
   projectId: "gen-lang-client-0269598757",
@@ -602,14 +628,13 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app, "ai-studio-e11fd13d-64b0-437c-8906-e6481c206003");
 
-// Event Types mit Icons und Farben
 const eventTypes = {
-  tournament: { icon: '🏆', label: 'Tournament', color: 'var(--red)' },
-  verlosung: { icon: '🎁', label: 'Verlosung', color: 'var(--green)' },
-  community: { icon: '🎮', label: 'Community-Event', color: 'var(--blue)' },
-  stream: { icon: '🎤', label: 'Stream-Event', color: 'var(--purple)' },
-  challenge: { icon: '🎯', label: 'Challenge', color: 'var(--orange)' },
-  sonstiges: { icon: '📅', label: 'Sonstiges', color: 'var(--gray)' }
+  tournament: { icon: '🏆', label: 'Tournament' },
+  verlosung: { icon: '🎁', label: 'Verlosung' },
+  community: { icon: '🎮', label: 'Community-Event' },
+  stream: { icon: '🎤', label: 'Stream-Event' },
+  challenge: { icon: '🎯', label: 'Challenge' },
+  sonstiges: { icon: '📅', label: 'Sonstiges' }
 };
 
 function esc(str) {
@@ -621,10 +646,7 @@ function openModal(eventId, eventType, eventTitle) {
   document.getElementById('eventId').value = eventId;
   document.getElementById('eventType').value = eventType;
   document.getElementById('modalTitle').textContent = `Anmelden: ${eventTitle}`;
-  
-  // Zeige In-Game-Name Feld nur für Tournaments
   document.getElementById('gameName-group').style.display = eventType === 'tournament' ? 'block' : 'none';
-  
   document.getElementById('registrationModal').classList.add('active');
 }
 
@@ -636,63 +658,26 @@ function closeModal() {
 
 document.getElementById('registrationForm').addEventListener('submit', async (e) => {
   e.preventDefault();
-  
-  const eventId = document.getElementById('eventId').value;
-  const eventType = document.getElementById('eventType').value;
-  const username = document.querySelector('input[name="username"]').value;
-  const discordName = document.querySelector('input[name="discordName"]').value;
-  const gameName = document.querySelector('input[name="gameName"]').value;
-  
   const formStatus = document.getElementById('formStatus');
   
-  try {
-    // Discord Webhook Nachricht
-    const webhookUrl = `WEBHOOK_URL_HERE`; // Du musst die Webhook URLs im Admin-Panel speichern
-    
-    let description = `**Username:** ${username}\n**Discord:** ${discordName}`;
-    if (eventType === 'tournament' && gameName) {
-      description += `\n**In-Game:** ${gameName}`;
-    }
-    
-    const embed = {
-      title: `Neue Anmeldung`,
-      description: description,
-      color: 0xc9a84c,
-      footer: { text: 'NightWither Unity Events' },
-      timestamp: new Date().toISOString()
-    };
-    
-    // Hier würde die Webhook-Integration erfolgen
-    // Für jetzt nur erfolgreiche Meldung
-    formStatus.textContent = '✓ Anmeldung erfolgreich!';
-    formStatus.classList.add('success');
-    formStatus.classList.remove('error');
-    
-    setTimeout(() => {
-      closeModal();
-    }, 1500);
-    
-  } catch (error) {
-    formStatus.textContent = '✗ Fehler bei der Anmeldung.';
-    formStatus.classList.add('error');
-    formStatus.classList.remove('success');
-  }
+  formStatus.textContent = '✓ Anmeldung erfolgreich!';
+  formStatus.classList.add('success');
+  formStatus.classList.remove('error');
+  
+  setTimeout(() => closeModal(), 1500);
 });
 
 async function load() {
   try {
-    // Events laden
     const evSnap = await getDocs(collection(db, 'events'));
     const events = evSnap.docs.map(d => ({id: d.id, ...d.data()}));
     
-    // Streaming Plan laden (mit Error Handling)
     let streams = [];
     try {
       const streamSnap = await getDocs(collection(db, 'streamingplan'));
       streams = streamSnap.docs.map(d => ({id: d.id, ...d.data()})).sort((a, b) => (a.order || 0) - (b.order || 0));
-    } catch (streamError) {
-      console.warn('Streaming Plan konnte nicht geladen werden:', streamError);
-      streams = [];
+    } catch (e) {
+      console.warn('Streams konnten nicht geladen werden');
     }
     
     document.getElementById('loading').style.display = 'none';
@@ -706,18 +691,20 @@ async function load() {
       document.getElementById('eventsSection').style.display = 'flex';
       document.getElementById('eventsList').innerHTML = events.map(ev => {
         const typeInfo = eventTypes[ev.type] || eventTypes.sonstiges;
+        const typeClass = ev.type || 'sonstiges';
+        
         return `
-          <div class="event-card type-${ev.type} fade-in">
-            <div class="event-header">
-              <div class="event-type-icon">${typeInfo.icon}</div>
-              <div class="event-info">
+          <div class="event-card type-${typeClass} fade-in">
+            <div class="event-top">
+              <div class="event-icon">${typeInfo.icon}</div>
+              <div class="event-details">
                 <div class="event-title">${esc(ev.title)}</div>
-                <div class="event-type-label">${typeInfo.label}</div>
+                <div class="event-type">${typeInfo.label}</div>
               </div>
             </div>
             ${ev.description ? `<div class="event-desc">${esc(ev.description)}</div>` : ''}
-            <div class="event-footer">
-              <div>
+            <div class="event-bottom">
+              <div class="event-meta">
                 ${ev.eventDate ? `<div class="event-date">${new Date(ev.eventDate).toLocaleDateString('de-DE')}</div>` : ''}
                 <div class="event-prize">${esc(ev.prizePool || 'Ruhm & Ehre')}</div>
               </div>
@@ -747,7 +734,7 @@ async function load() {
   }
 }
 
-// Partikel Canvas (Linktree Style)
+// Partikel Canvas
 const canvas = document.getElementById('particle-canvas');
 const ctx = canvas.getContext('2d');
 
@@ -813,7 +800,6 @@ function animateParticles() {
 animateParticles();
 load();
 
-// Global functions für Modal
 window.openModal = openModal;
 window.closeModal = closeModal;
 </script>

@@ -658,13 +658,61 @@ function closeModal() {
 
 document.getElementById('registrationForm').addEventListener('submit', async (e) => {
   e.preventDefault();
+  
+  const eventId = document.getElementById('eventId').value;
+  const eventType = document.getElementById('eventType').value;
+  const username = document.querySelector('input[name="username"]').value;
+  const discordName = document.querySelector('input[name="discordName"]').value;
+  const gameName = document.querySelector('input[name="gameName"]').value;
+  
   const formStatus = document.getElementById('formStatus');
   
-  formStatus.textContent = '✓ Anmeldung erfolgreich!';
-  formStatus.classList.add('success');
-  formStatus.classList.remove('error');
-  
-  setTimeout(() => closeModal(), 1500);
+  try {
+    // Webhook-URLs basierend auf Event-Typ auswählen
+    const webhookUrl = eventType === 'tournament' 
+      ? 'https://discord.com/api/webhooks/1538545515984064552/dWflH_PLfM15F9UcdiEAgoQ9ejjzM5tApkRvY1EJB7hPy53A-N6MZgzwfBFOgCjpufGE'
+      : 'https://discord.com/api/webhooks/1506261180388343921/cFzGnOcfY692D--xD3VTMFLYNFIRYa_MYHfhchQwD5q68bvZOOT8fUx9MIvCiLTqcUf0';
+    
+    // Discord-Nachricht vorbereiten
+    let description = `**Username:** ${username}\n**Discord:** ${discordName}`;
+    if (eventType === 'tournament' && gameName) {
+      description += `\n**In-Game:** ${gameName}`;
+    }
+    
+    const embedMessage = {
+      embeds: [{
+        title: '🎮 Neue Anmeldung',
+        description: description,
+        color: eventType === 'tournament' ? 16711680 : 34816, // Rot für Tournament, Grün für andere
+        footer: { text: 'NightWither Unity Events' },
+        timestamp: new Date().toISOString()
+      }]
+    };
+    
+    // Discord Webhook aufrufen
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(embedMessage)
+    });
+    
+    if (response.ok) {
+      formStatus.textContent = '✓ Anmeldung erfolgreich! Nachricht an Discord gesendet.';
+      formStatus.classList.add('success');
+      formStatus.classList.remove('error');
+      
+      setTimeout(() => {
+        closeModal();
+      }, 1500);
+    } else {
+      throw new Error('Discord Webhook fehlgeschlagen');
+    }
+  } catch (error) {
+    console.error('Fehler:', error);
+    formStatus.textContent = '✗ Fehler bei der Anmeldung.';
+    formStatus.classList.add('error');
+    formStatus.classList.remove('success');
+  }
 });
 
 async function load() {

@@ -742,7 +742,8 @@ async function load() {
     let streams = [];
     try {
       const streamSnap = await getDocs(collection(db, 'streamingplan'));
-      streams = streamSnap.docs.map(d => ({id: d.id, ...d.data()})).sort((a, b) => (a.order || 0) - (b.order || 0));
+      const days = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
+      streams = streamSnap.docs.map(d => ({id: d.id, ...d.data()})).sort((a, b) => days.indexOf(a.day) - days.indexOf(b.day));
     } catch (e) {
       console.warn('Streams konnten nicht geladen werden');
     }

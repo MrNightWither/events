@@ -5,7 +5,6 @@
 const ANMELDUNG_URL = 'https://nwu-anmeldung.nwu-brand.workers.dev';
 
 const FIRESTORE = 'https://firestore.googleapis.com/v1/projects/adminpannel-f0aab/databases/(default)/documents/';
-const DAYS = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
 const EVENT_TYPES = {
   tournament: 'TURNIER',
   verlosung: 'VERLOSUNG',
@@ -79,14 +78,33 @@ function renderEvent(ev) {
   return card;
 }
 
+// Ein Stream verschwindet 6 Stunden nach Beginn, maximal so viele werden angezeigt
+const STREAM_KEEP_MS = 6 * 60 * 60 * 1000;
+const MAX_STREAMS = 6;
+
+function dayLabel(d) {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const that = new Date(d); that.setHours(0, 0, 0, 0);
+  const diff = Math.round((that - today) / 86400000);
+  if (diff === 0) return 'Heute';
+  if (diff === 1) return 'Morgen';
+  return null;
+}
+
 function renderStream(s) {
+  const d = new Date(s.streamDate);
   const card = el('div', 'stream-card fade-in');
   const time = el('div', 'stream-time');
-  time.append(DAYS.includes(s.day) ? s.day : 'Tag', document.createElement('br'),
-    /^\d{2}:\d{2}$/.test(s.time || '') ? s.time : '--:--');
+  time.append(
+    d.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' }),
+    document.createElement('br'),
+    d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
+  );
   const info = el('div', 'stream-info');
   info.append(el('div', 'stream-game', s.game || 'TBA'), el('div', 'stream-platform', s.platform || 'Twitch & TikTok'));
-  card.append(time, info, el('div', 'stream-badge', 'Live'));
+  card.append(time, info);
+  const label = dayLabel(d);
+  if (label) card.append(el('div', 'stream-badge', label));
   return card;
 }
 
@@ -102,7 +120,13 @@ async function load() {
 
     let streams = [];
     try {
-      streams = (await fetchCollection('streamingplan')).sort((a, b) => DAYS.indexOf(a.day) - DAYS.indexOf(b.day));
+      streams = (await fetchCollection('streamingplan'))
+        .filter((st) => {
+          const t = new Date(st.streamDate).getTime();
+          return !isNaN(t) && t + STREAM_KEEP_MS > now;
+        })
+        .sort((a, b) => new Date(a.streamDate) - new Date(b.streamDate))
+        .slice(0, MAX_STREAMS);
     } catch (e) { /* Streaming Plan ist optional */ }
 
     $('loading').style.display = 'none';

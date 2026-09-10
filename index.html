@@ -3,9 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Events & News – NightWither</title>
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<title>Events &amp; News NightWither</title>
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; font-src 'self'; connect-src https://firestore.googleapis.com https://nwu-anmeldung.nwu-brand.workers.dev; base-uri 'none'; form-action 'none'">
+<meta name="description" content="Events, Turniere und Streaming Plan von NightWither Unity">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
+  @font-face { font-family: 'Rajdhani'; font-style: normal; font-weight: 500; font-display: swap; src: url('fonts/rajdhani-500.woff') format('woff'); }
+  @font-face { font-family: 'Rajdhani'; font-style: normal; font-weight: 700; font-display: swap; src: url('fonts/rajdhani-700.woff') format('woff'); }
+  @font-face { font-family: 'Inter'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/inter-400.woff') format('woff'); }
+  @font-face { font-family: 'Inter'; font-style: normal; font-weight: 500; font-display: swap; src: url('fonts/inter-500.woff') format('woff'); }
+  @font-face { font-family: 'Inter'; font-style: normal; font-weight: 600; font-display: swap; src: url('fonts/inter-600.woff') format('woff'); }
+
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   
   :root {
@@ -27,7 +38,7 @@
   body {
     background: #000000;
     color: var(--text);
-    font-family: 'Inter', sans-serif;
+    font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
     min-height: 100vh;
     position: relative;
     overflow-x: hidden;
@@ -554,6 +565,13 @@
   .fade-in {
     animation: fadeUp 0.4s ease both;
   }
+
+  .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+  .form-consent { display: flex; gap: 10px; align-items: flex-start; font-size: 0.75rem; color: var(--muted); line-height: 1.5; }
+  .form-consent input { margin-top: 3px; accent-color: var(--gold); flex-shrink: 0; }
+  .form-consent a { color: var(--gold); }
+  .form-submit:disabled { opacity: 0.5; cursor: wait; }
+  button:focus-visible, a:focus-visible, .form-input:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 </style>
 </head>
 <body>
@@ -601,279 +619,51 @@
 </main>
 
 <!-- Anmeldeformular Modal -->
-<div id="registrationModal" class="modal">
+<div id="registrationModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
   <div class="modal-content">
     <div class="modal-header">
       <div class="modal-title" id="modalTitle">Anmelden</div>
-      <button class="modal-close" onclick="closeModal()">&times;</button>
+      <button class="modal-close" id="modalClose" type="button" aria-label="Schließen">&times;</button>
     </div>
 
-    <form id="registrationForm">
-      <input type="hidden" id="eventId" />
-      <input type="hidden" id="eventType" />
-
+    <form id="registrationForm" novalidate>
       <div class="form-group">
-        <label class="form-label">Username</label>
-        <input type="text" name="username" class="form-input" required />
+        <label class="form-label" for="fUsername">Username</label>
+        <input type="text" id="fUsername" class="form-input" maxlength="40" autocomplete="nickname" required />
       </div>
 
       <div class="form-group">
-        <label class="form-label">Discord Name</label>
-        <input type="text" name="discordName" class="form-input" placeholder="z.B. NightWither#1234" required />
+        <label class="form-label" for="fDiscord">Discord Name</label>
+        <input type="text" id="fDiscord" class="form-input" maxlength="40" placeholder="z.B. nightwither" required />
       </div>
 
       <div id="gameName-group" class="form-group" style="display:none">
-        <label class="form-label">In-Game Name</label>
-        <input type="text" name="gameName" class="form-input" placeholder="z.B. NightWither#1234" />
+        <label class="form-label" for="fGame">In Game Name</label>
+        <input type="text" id="fGame" class="form-input" maxlength="40" placeholder="z.B. NightWither#1234567" />
+      </div>
+
+      <div class="hp" aria-hidden="true">
+        <label for="fWebsite">Webseite</label>
+        <input type="text" id="fWebsite" tabindex="-1" autocomplete="off" />
       </div>
 
       <div class="form-group">
-        <button type="submit" class="form-submit">Anmelden →</button>
+        <label class="form-consent">
+          <input type="checkbox" id="fConsent" required />
+          <span>Ich bin einverstanden, dass meine Angaben zur Organisation des Events an den Discord Server von NightWither Unity übermittelt werden. Mehr dazu in der <a href="https://datenschutz.nightwither.de" target="_blank" rel="noopener noreferrer">Datenschutzerklärung</a>.</span>
+        </label>
       </div>
 
-      <div id="formStatus" class="form-status"></div>
+      <div class="form-group">
+        <button type="submit" id="fSubmit" class="form-submit">Anmelden</button>
+      </div>
+
+      <div id="formStatus" class="form-status" role="status"></div>
     </form>
   </div>
 </div>
 
-<script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js';
-import { getFirestore, collection, getDocs } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js';
-
-const firebaseConfig = {
-  apiKey: "AIzaSyCGZTtokmCpu9CTDRWOi5HHO4CGO-BZgGU",
-  authDomain: "adminpannel-f0aab.firebaseapp.com",
-  projectId: "adminpannel-f0aab",
-  storageBucket: "adminpannel-f0aab.firebasestorage.app",
-  messagingSenderId: "373454919812",
-  appId: "1:373454919812:web:281bd757fb982bb24f4ad1"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-const eventTypes = {
-  tournament: { icon: '🏆', label: 'TURNIER' },
-  verlosung: { icon: '🎁', label: 'VERLOSUNG' },
-  community: { icon: '🎮', label: 'COMMUNITY' },
-  stream: { icon: '🎤', label: 'STREAM' },
-  challenge: { icon: '🎯', label: 'CHALLENGE' },
-  sonstiges: { icon: '📅', label: 'SONSTIGES' }
-};
-
-function esc(str) {
-  if (!str) return '';
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-function openModal(eventId, eventType, eventTitle) {
-  document.getElementById('eventId').value = eventId;
-  document.getElementById('eventType').value = eventType;
-  document.getElementById('modalTitle').textContent = `Anmelden: ${eventTitle}`;
-  document.getElementById('gameName-group').style.display = eventType === 'tournament' ? 'block' : 'none';
-  document.getElementById('registrationModal').classList.add('active');
-}
-
-function closeModal() {
-  document.getElementById('registrationModal').classList.remove('active');
-  document.getElementById('registrationForm').reset();
-  document.getElementById('formStatus').textContent = '';
-}
-
-document.getElementById('registrationForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  
-  const eventId = document.getElementById('eventId').value;
-  const eventType = document.getElementById('eventType').value;
-  const username = document.querySelector('input[name="username"]').value;
-  const discordName = document.querySelector('input[name="discordName"]').value;
-  const gameName = document.querySelector('input[name="gameName"]').value;
-  
-  const formStatus = document.getElementById('formStatus');
-  
-  try {
-    const webhookUrl = eventType === 'tournament' 
-      ? 'https://discord.com/api/webhooks/1538545515984064552/dWflH_PLfM15F9UcdiEAgoQ9ejjzM5tApkRvY1EJB7hPy53A-N6MZgzwfBFOgCjpufGE'
-      : 'https://discord.com/api/webhooks/1506261180388343921/cFzGnOcfY692D--xD3VTMFLYNFIRYa_MYHfhchQwD5q68bvZOOT8fUx9MIvCiLTqcUf0';
-    
-    let description = `**Username:** ${username}\n**Discord:** ${discordName}`;
-    if (eventType === 'tournament' && gameName) {
-      description += `\n**In-Game:** ${gameName}`;
-    }
-    
-    const embedMessage = {
-      embeds: [{
-        title: '🎮 Neue Anmeldung',
-        description: description,
-        color: eventType === 'tournament' ? 16711680 : 34816,
-        footer: { text: 'NightWither Unity Events' },
-        timestamp: new Date().toISOString()
-      }]
-    };
-    
-    const response = await fetch(webhookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(embedMessage)
-    });
-    
-    if (response.ok) {
-      formStatus.textContent = '✓ Anmeldung erfolgreich!';
-      formStatus.classList.add('success');
-      formStatus.classList.remove('error');
-      
-      setTimeout(() => closeModal(), 1500);
-    } else {
-      throw new Error('Discord Webhook fehlgeschlagen');
-    }
-  } catch (error) {
-    console.error('Fehler:', error);
-    formStatus.textContent = '✗ Fehler bei der Anmeldung.';
-    formStatus.classList.add('error');
-    formStatus.classList.remove('success');
-  }
-});
-
-async function load() {
-  try {
-    const evSnap = await getDocs(collection(db, 'events'));
-    const events = evSnap.docs.map(d => ({id: d.id, ...d.data()}));
-    
-    let streams = [];
-    try {
-      const streamSnap = await getDocs(collection(db, 'streamingplan'));
-      const days = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
-      streams = streamSnap.docs.map(d => ({id: d.id, ...d.data()})).sort((a, b) => days.indexOf(a.day) - days.indexOf(b.day));
-    } catch (e) {
-      console.warn('Streams konnten nicht geladen werden');
-    }
-    
-    document.getElementById('loading').style.display = 'none';
-    
-    if (events.length === 0 && streams.length === 0) {
-      document.getElementById('emptyState').style.display = 'block';
-      return;
-    }
-    
-    if (events.length > 0) {
-      document.getElementById('eventsSection').style.display = 'flex';
-      document.getElementById('eventsList').innerHTML = events.map(ev => {
-        const typeInfo = eventTypes[ev.type] || eventTypes.sonstiges;
-        const typeClass = ev.type || 'sonstiges';
-        const date = ev.eventDate ? new Date(ev.eventDate) : null;
-        const dateStr = date ? date.toLocaleDateString('de-DE') : 'TBA';
-        const timeStr = date ? date.toLocaleTimeString('de-DE', {hour: '2-digit', minute:'2-digit'}) : '--:--';
-        
-        return `
-          <div class="event-card type-${typeClass} fade-in">
-            <div class="event-time">${dateStr}<br/>${timeStr}</div>
-            <div class="event-content">
-              <div class="event-title">${esc(ev.title)}</div>
-              <div class="event-meta">
-                <div class="event-type">${typeInfo.label}</div>
-              </div>
-              <div class="event-prize-line">
-                <span class="event-prize-label">Preis:</span>
-                <span class="event-prize">${esc(ev.prizePool || 'Ruhm & Ehre')}</span>
-              </div>
-              ${ev.description ? `<div class="event-desc">${esc(ev.description)}</div>` : ''}
-            </div>
-            <div class="event-button">
-              <button class="event-btn" onclick="openModal('${ev.id}', '${ev.type}', '${esc(ev.title)}')">Anmelden →</button>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-    
-    if (streams.length > 0) {
-      document.getElementById('streamingSection').style.display = 'flex';
-      document.getElementById('streamingList').innerHTML = streams.map(stream => `
-        <div class="stream-card fade-in">
-          <div class="stream-time">${stream.day || 'Tag'}<br/>${stream.time || '--:--'}</div>
-          <div class="stream-info">
-            <div class="stream-game">${esc(stream.game || 'TBA')}</div>
-            <div class="stream-platform">${esc(stream.platform || 'Twitch & TikTok')}</div>
-          </div>
-          <div class="stream-badge">Live</div>
-        </div>
-      `).join('');
-    }
-  } catch(e) {
-    console.error('Fehler beim Laden:', e);
-    document.getElementById('loading').innerHTML = '<p style="color:#f87171;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.2em">Fehler beim Laden. Schau auf Discord vorbei!</p>';
-  }
-}
-
-// Partikel Canvas
-const canvas = document.getElementById('particle-canvas');
-const ctx = canvas.getContext('2d');
-
-function resizeCanvas() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-}
-resizeCanvas();
-window.addEventListener('resize', resizeCanvas);
-
-const particles = [];
-const PARTICLE_COUNT = 120;
-
-for (let i = 0; i < PARTICLE_COUNT; i++) {
-  particles.push({
-    x: Math.random() * canvas.width,
-    y: Math.random() * canvas.height,
-    r: Math.random() * 1.5 + 0.3,
-    dx: (Math.random() - 0.5) * 0.08,
-    dy: (Math.random() - 0.5) * 0.08,
-    alpha: Math.random() * 0.8 + 0.2,
-    life: Math.random(),
-    maxLife: 1
-  });
-}
-
-function animateParticles() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
-  particles.forEach(p => {
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(201, 168, 76, ${p.alpha})`;
-    ctx.fill();
-
-    ctx.strokeStyle = `rgba(240, 208, 128, ${p.alpha * 0.5})`;
-    ctx.lineWidth = 0.5;
-    ctx.stroke();
-
-    p.x += p.dx;
-    p.y += p.dy;
-    p.life -= 0.004;
-    p.alpha = (p.life / p.maxLife) * 0.8;
-
-    if (p.life <= 0) {
-      p.x = Math.random() * canvas.width;
-      p.y = Math.random() * canvas.height;
-      p.life = 1;
-      p.alpha = Math.random() * 0.8 + 0.2;
-      p.dx = (Math.random() - 0.5) * 0.08;
-      p.dy = (Math.random() - 0.5) * 0.08;
-    }
-    
-    if (p.x < -p.r) p.x = canvas.width + p.r;
-    if (p.x > canvas.width + p.r) p.x = -p.r;
-    if (p.y < -p.r) p.y = canvas.height + p.r;
-    if (p.y > canvas.height + p.r) p.y = -p.r;
-  });
-  
-  requestAnimationFrame(animateParticles);
-}
-
-animateParticles();
-load();
-
-window.openModal = openModal;
-window.closeModal = closeModal;
-</script>
+<script src="events.js"></script>
 
 </body>
 </html>

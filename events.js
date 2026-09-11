@@ -17,6 +17,7 @@ const EVENT_TYPES = {
 const SHOW_AFTER_START_MS = 12 * 60 * 60 * 1000;
 
 const $ = (id) => document.getElementById(id);
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // Baut ein Element nur mit textContent. Eingeschleuster Code wird so nie ausgeführt.
 function el(tag, className, text) {
@@ -47,29 +48,39 @@ async function fetchCollection(name) {
 }
 
 // ---------- Anzeige ----------
+// Datum und Uhrzeit stehen auf zwei Zeilen: oben der Tag, darunter die Zeit.
+// Events und Streams benutzen dieselbe Schreibweise, damit beide Listen
+// nebeneinander gelesen werden koennen.
+function fillTime(node, date) {
+  if (!date || isNaN(date)) {
+    node.append('TBA', el('span', 't', '--:--'));
+    return node;
+  }
+  node.append(
+    date.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' }),
+    el('span', 't', date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }))
+  );
+  return node;
+}
+
 function renderEvent(ev) {
   const typeKey = Object.prototype.hasOwnProperty.call(EVENT_TYPES, ev.type) ? ev.type : 'sonstiges';
   const date = ev.eventDate ? new Date(ev.eventDate) : null;
-  const valid = date && !isNaN(date);
 
   const card = el('div', 'event-card type-' + typeKey + ' fade-in');
 
-  const time = el('div', 'event-time');
-  time.append(valid ? date.toLocaleDateString('de-DE') : 'TBA', document.createElement('br'),
-    valid ? date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) : '--:--');
+  const time = fillTime(el('div', 'event-time'), date);
 
   const content = el('div', 'event-content');
+  content.append(el('div', 'event-type', EVENT_TYPES[typeKey]));
   content.append(el('div', 'event-title', ev.title || 'Event'));
-  const meta = el('div', 'event-meta');
-  meta.append(el('div', 'event-type', EVENT_TYPES[typeKey]));
-  content.append(meta);
   const prize = el('div', 'event-prize-line');
-  prize.append(el('span', 'event-prize-label', 'Preis:'), ' ', el('span', 'event-prize', ev.prizePool || 'Ruhm & Ehre'));
+  prize.append(el('span', 'event-prize-label', 'Preis'), el('span', 'event-prize', ev.prizePool || 'Ruhm & Ehre'));
   content.append(prize);
   if (ev.description) content.append(el('div', 'event-desc', ev.description));
 
   const btnWrap = el('div', 'event-button');
-  const btn = el('button', 'event-btn', 'Anmelden');
+  const btn = el('button', 'btn-gold', 'Anmelden');
   btn.type = 'button';
   btn.addEventListener('click', () => openModal(ev.id, typeKey, ev.title || 'Event'));
   btnWrap.append(btn);
@@ -94,18 +105,17 @@ function dayLabel(d) {
 function renderStream(s) {
   const d = new Date(s.streamDate);
   const card = el('div', 'stream-card fade-in');
-  const time = el('div', 'stream-time');
-  time.append(
-    d.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' }),
-    document.createElement('br'),
-    d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
-  );
+  const time = fillTime(el('div', 'stream-time'), d);
   const info = el('div', 'stream-info');
   info.append(el('div', 'stream-game', s.game || 'TBA'), el('div', 'stream-platform', s.platform || 'Twitch & TikTok'));
   card.append(time, info);
   const label = dayLabel(d);
-  if (label) card.append(el('div', 'stream-badge', label));
+  if (label) card.append(el('div', 'tag' + (label === 'Heute' ? ' heute' : ''), label));
   return card;
+}
+
+function zaehler(n, ein, viele) {
+  return n + ' ' + (n === 1 ? ein : viele);
 }
 
 async function load() {
@@ -129,24 +139,26 @@ async function load() {
         .slice(0, MAX_STREAMS);
     } catch (e) { /* Streaming Plan ist optional */ }
 
-    $('loading').style.display = 'none';
+    $('loading').hidden = true;
 
     if (!events.length && !streams.length) {
-      $('emptyState').style.display = 'block';
+      $('emptyState').hidden = false;
       return;
     }
     if (events.length) {
-      $('eventsSection').style.display = 'flex';
+      $('eventsSection').hidden = false;
+      $('eventsMeta').textContent = zaehler(events.length, 'Event', 'Events');
       $('eventsList').replaceChildren(...events.map(renderEvent));
     }
     if (streams.length) {
-      $('streamingSection').style.display = 'flex';
+      $('streamingSection').hidden = false;
+      $('streamMeta').textContent = zaehler(streams.length, 'Termin', 'Termine');
       $('streamingList').replaceChildren(...streams.map(renderStream));
     }
   } catch (e) {
-    const p = el('p', null, 'Fehler beim Laden. Schau auf Discord vorbei!');
-    p.style.cssText = 'color:#f87171;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.2em';
-    $('loading').replaceChildren(p);
+    $('loading').removeAttribute('aria-busy');
+    $('loading').className = 'note error';
+    $('loading').replaceChildren(el('p', null, 'Die Events lassen sich gerade nicht laden. Schau solange auf dem Discord Server vorbei.'));
   }
 }
 
@@ -158,13 +170,17 @@ function openModal(eventId, eventType, eventTitle) {
   currentEventId = eventId;
   lastOpener = document.activeElement;
   $('modalTitle').textContent = 'Anmelden: ' + eventTitle;
-  $('gameName-group').style.display = eventType === 'tournament' ? 'block' : 'none';
-  $('registrationModal').classList.add('active');
+  $('gameName-group').hidden = eventType !== 'tournament';
+  $('scrim').hidden = false;
+  $('registrationModal').hidden = false;
+  document.body.classList.add('locked');
   $('fUsername').focus();
 }
 
 function closeModal() {
-  $('registrationModal').classList.remove('active');
+  $('registrationModal').hidden = true;
+  $('scrim').hidden = true;
+  document.body.classList.remove('locked');
   $('registrationForm').reset();
   setStatus('', '');
   currentEventId = null;
@@ -177,9 +193,9 @@ function setStatus(text, type) {
   s.className = 'form-status' + (type ? ' ' + type : '');
 }
 
-$('modalClose').addEventListener('click', closeModal);
-$('registrationModal').addEventListener('click', (e) => { if (e.target.id === 'registrationModal') closeModal(); });
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && $('registrationModal').classList.contains('active')) closeModal(); });
+$('scrim').addEventListener('click', closeModal);
+document.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', closeModal));
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('registrationModal').hidden) closeModal(); });
 
 $('registrationForm').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -215,60 +231,69 @@ $('registrationForm').addEventListener('submit', async (e) => {
       })
     });
     if (!res.ok) throw new Error('Status ' + res.status);
-    setStatus('✓ Anmeldung erfolgreich!', 'success');
+    setStatus('Anmeldung erfolgreich.', 'success');
     setTimeout(closeModal, 1500);
   } catch (err) {
-    setStatus('✗ Anmeldung fehlgeschlagen. Versuch es später oder melde dich auf Discord.', 'error');
+    setStatus('Anmeldung fehlgeschlagen. Versuch es später oder melde dich auf Discord.', 'error');
   } finally {
     btn.disabled = false;
   }
 });
 
+// ---------- Leiste ----------
+const bar = $('bar');
+const onScroll = () => bar.classList.toggle('scrolled', window.scrollY > 10);
+window.addEventListener('scroll', onScroll, { passive: true });
+onScroll();
+
 // ---------- Partikel ----------
+// Gleiche Funkenflug wie auf Linkseite und Shop: die Bitmap wird mit der
+// Geraetepixeldichte multipliziert, gerechnet wird weiter in CSS-Pixeln.
 const canvas = $('particle-canvas');
 const ctx = canvas.getContext('2d');
-const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let viewW = window.innerWidth;
+let viewH = window.innerHeight;
 
 function resizeCanvas() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  viewW = window.innerWidth;
+  viewH = window.innerHeight;
+  canvas.width = Math.round(viewW * dpr);
+  canvas.height = Math.round(viewH * dpr);
+  canvas.style.width = viewW + 'px';
+  canvas.style.height = viewH + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 
+const PARTICLE_COUNT = viewW < 600 ? 60 : 110;
 const particles = [];
-function resetParticle(p) {
-  p.x = Math.random() * canvas.width;
-  p.y = Math.random() * canvas.height;
-  p.r = p.r || Math.random() * 1.5 + 0.3;
+
+function resetParticle(p, fresh) {
+  p.x = Math.random() * viewW;
+  p.y = Math.random() * viewH;
+  p.r = p.r || Math.random() * 1.4 + 0.3;
   p.dx = (Math.random() - 0.5) * 0.08;
-  p.dy = (Math.random() - 0.5) * 0.08;
-  p.life = Math.random();
-  p.alpha = Math.random() * 0.8 + 0.2;
+  p.dy = -Math.random() * 0.12 - 0.02;
+  p.life = fresh ? Math.random() : 1;
   return p;
 }
-for (let i = 0; i < 120; i++) particles.push(resetParticle({}));
+for (let i = 0; i < PARTICLE_COUNT; i++) particles.push(resetParticle({}, true));
 
 function drawParticles() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  particles.forEach((p) => {
+  ctx.clearRect(0, 0, viewW, viewH);
+  for (const p of particles) {
+    const a = Math.max(0, p.life) * 0.8;
     ctx.beginPath();
     ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(201, 168, 76, ${p.alpha})`;
+    ctx.fillStyle = `rgba(201, 168, 76, ${a})`;
     ctx.fill();
-    ctx.strokeStyle = `rgba(240, 208, 128, ${p.alpha * 0.5})`;
-    ctx.lineWidth = 0.5;
-    ctx.stroke();
     p.x += p.dx;
     p.y += p.dy;
-    p.life -= 0.004;
-    p.alpha = p.life * 0.8;
-    if (p.life <= 0) { resetParticle(p); p.life = 1; }
-    if (p.x < -p.r) p.x = canvas.width + p.r;
-    if (p.x > canvas.width + p.r) p.x = -p.r;
-    if (p.y < -p.r) p.y = canvas.height + p.r;
-    if (p.y > canvas.height + p.r) p.y = -p.r;
-  });
+    p.life -= 0.0035;
+    if (p.life <= 0 || p.y < -4) resetParticle(p, false);
+  }
   if (!reduceMotion) requestAnimationFrame(drawParticles);
 }
 drawParticles();

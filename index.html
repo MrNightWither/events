@@ -3,13 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Events &amp; News NightWither</title>
+<title>Events &amp; News — NightWither Unity</title>
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; font-src 'self'; connect-src https://firestore.googleapis.com https://nwu-anmeldung.nwu-brand.workers.dev; base-uri 'none'; form-action 'none'">
-<meta name="description" content="Events, Turniere und Streaming Plan von NightWither Unity">
+<meta name="description" content="Events, Turniere und Streaming Plan von NightWither Unity.">
+<meta name="theme-color" content="#000000">
+<meta property="og:title" content="Events &amp; News — NightWither Unity">
+<meta property="og:description" content="Turniere, Verlosungen und der Streaming Plan von NightWither Unity.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://events.nightwither.de/">
+<meta property="og:image" content="https://events.nightwither.de/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preload" href="fonts/rajdhani-700.woff" as="font" type="font/woff" crossorigin>
 <style>
   @font-face { font-family: 'Rajdhani'; font-style: normal; font-weight: 500; font-display: swap; src: url('fonts/rajdhani-500.woff') format('woff'); }
   @font-face { font-family: 'Rajdhani'; font-style: normal; font-weight: 700; font-display: swap; src: url('fonts/rajdhani-700.woff') format('woff'); }
@@ -17,667 +27,470 @@
   @font-face { font-family: 'Inter'; font-style: normal; font-weight: 500; font-display: swap; src: url('fonts/inter-500.woff') format('woff'); }
   @font-face { font-family: 'Inter'; font-style: normal; font-weight: 600; font-display: swap; src: url('fonts/inter-600.woff') format('woff'); }
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  
+  /* ---------- Marke: dieselben Werte wie Linkseite und Shop ---------- */
   :root {
-    --bg: #0a0a0d;
-    --surface: #111116;
-    --card: #16161b;
-    --border: rgba(255,255,255,0.07);
+    --black: #000000;
+    --night: #0a0a0d;
+    --panel: #0d0d10;
     --gold: #c9a84c;
-    --text: #e8e8e8;
-    --muted: #888;
-    --red: #dc2626;
-    --green: #22c55e;
-    --blue: #3b82f6;
-    --purple: #a855f7;
-    --orange: #f97316;
-    --gray: #6b7280;
+    --gold-hi: #e8c96d;
+    --blood: #6b0f1a;
+    --bone: #e8e8e8;
+    --ash: #8f8a80;
+    --line: rgba(255,255,255,0.07);
+    --display: 'Rajdhani', 'Arial Narrow', system-ui, sans-serif;
+    --body: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --pad: clamp(18px, 4vw, 48px);
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+    /* Eventtypen, gedaempft auf die Nachtpalette abgestimmt. Sie unterscheiden
+       die Arten weiterhin, arbeiten aber nicht mehr gegen das Gold. */
+    --t-tournament: #b3384a;
+    --t-verlosung:  #4f9d69;
+    --t-community:  #4d7ab5;
+    --t-stream:     #8b62c4;
+    --t-challenge:  #c2803c;
+    --t-sonstiges:  #8f8a80;
   }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  ::selection { background: rgba(201,168,76,0.3); color: var(--bone); }
 
   body {
-    background: #000000;
-    color: var(--text);
-    font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-    min-height: 100vh;
-    position: relative;
-    overflow-x: hidden;
-  }
-
-  #particle-canvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  header {
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    background: rgba(10,10,13,0.92);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--border);
-    padding: 12px 16px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .header-left {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .header-logo {
-    width: 32px;
-    height: 32px;
-    object-fit: contain;
-    filter: drop-shadow(0 0 8px rgba(201,168,76,0.3));
-  }
-
-  .header-sub {
-    font-size: 9px;
-    letter-spacing: 0.25em;
-    text-transform: uppercase;
-    color: var(--muted);
-    font-family: monospace;
-  }
-
-  .header-title {
-    font-family: Rajdhani, sans-serif;
-    font-weight: 700;
-    font-size: 0.95rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: #fff;
-  }
-
-  .header-back {
-    font-size: 9px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--muted);
-    text-decoration: none;
-    font-family: monospace;
-    transition: color 0.2s;
-    position: relative;
-    z-index: 1;
-  }
-
-  .header-back:hover {
-    color: var(--gold);
-  }
-
-  main {
-    max-width: 520px;
-    margin: 0 auto;
-    padding: 32px 16px 60px;
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    position: relative;
-    z-index: 1;
-  }
-
-  .section-label {
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    color: var(--muted);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .section-label .dot {
-    width: 6px;
-    height: 18px;
-    border-radius: 3px;
-  }
-
-  .loading {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    padding: 60px 0;
-    color: var(--muted);
-  }
-
-  .spinner {
-    width: 24px;
-    height: 24px;
-    border: 2px solid rgba(201,168,76,0.2);
-    border-top-color: var(--gold);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-
-  /* Event Grid */
-  .events-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-
-  /* Event Card - Responsive Layout */
-  .event-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    transition: all 0.2s;
-  }
-
-  @media (min-width: 480px) {
-    .event-card {
-      display: grid;
-      grid-template-columns: 65px 1fr 105px;
-      gap: 12px;
-      align-items: start;
-      flex-direction: row;
-    }
-  }
-
-  .event-card:hover {
-    border-color: var(--gold);
-    box-shadow: 0 0 12px rgba(201,168,76,0.1);
-  }
-
-  /* Linke Spalte - Zeit & Datum */
-  .event-time {
-    font-family: monospace;
-    font-size: 0.8rem;
-    color: var(--gold);
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    text-align: left;
+    background: var(--black);
+    color: var(--bone);
+    font-family: var(--body);
+    font-size: 16px;
     line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
+  body.locked { overflow: hidden; }
+  img { display: block; max-width: 100%; }
+  a { color: inherit; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  [hidden] { display: none !important; }
+  :focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 
-  /* Mittlere Spalte - Inhalt */
-  .event-content {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    min-width: 0;
+  #particle-canvas { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+  .bar, main, .foot { position: relative; z-index: 1; }
+
+  .skip { position: absolute; left: -9999px; top: 8px; z-index: 100; background: var(--gold); color: var(--black); padding: 8px 14px; font-weight: 600; }
+  .skip:focus { left: 8px; }
+
+  /* ---------- Leiste, wie im Shop ---------- */
+  .bar {
+    position: sticky; top: 0; z-index: 40;
+    display: flex; align-items: center; gap: 16px;
+    padding: 14px var(--pad);
+    background: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.3s;
   }
+  .bar.scrolled { border-bottom-color: var(--line); }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; margin-right: auto; }
+  .brand img { width: 26px; height: auto; filter: drop-shadow(0 0 8px rgba(201,168,76,0.3)); }
+  .brand span { font-family: var(--display); font-weight: 700; font-size: 1.15rem; letter-spacing: 0.06em; text-transform: uppercase; }
 
-  .event-title {
-    font-family: Rajdhani, sans-serif;
-    font-weight: 700;
-    font-size: 0.95rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: #fff;
-    line-height: 1.2;
-  }
-
-  .event-meta {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    font-size: 0.7rem;
-  }
-
-  .event-type {
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    font-weight: 700;
-  }
-
-  .event-card.type-tournament .event-type { color: var(--red); }
-  .event-card.type-verlosung .event-type { color: var(--green); }
-  .event-card.type-community .event-type { color: var(--blue); }
-  .event-card.type-stream .event-type { color: var(--purple); }
-  .event-card.type-challenge .event-type { color: var(--orange); }
-  .event-card.type-sonstiges .event-type { color: var(--gray); }
-
-  .event-prize-line {
-    font-size: 0.7rem;
-    display: flex;
-    gap: 3px;
-    align-items: center;
-    flex-wrap: nowrap;
-    width: 100%;
-  }
-
-  .event-prize-label {
-    color: var(--muted);
-    white-space: nowrap;
-    font-size: 0.65rem;
-  }
-
-  .event-prize {
-    font-family: Rajdhani, sans-serif;
-    font-weight: 700;
-    white-space: nowrap;
-  }
-
-  .event-card.type-tournament .event-prize { color: var(--red); }
-  .event-card.type-verlosung .event-prize { color: var(--green); }
-  .event-card.type-community .event-prize { color: var(--blue); }
-  .event-card.type-stream .event-prize { color: var(--purple); }
-  .event-card.type-challenge .event-prize { color: var(--orange); }
-  .event-card.type-sonstiges .event-prize { color: var(--gray); }
-
-  .event-desc {
-    font-size: 0.65rem;
-    color: var(--muted);
-    line-height: 1.4;
-    margin-top: 4px;
-  }
-
-  /* Rechte Spalte - Button */
-  .event-button {
-    display: flex;
-    align-items: flex-start;
-    width: 100%;
-  }
-
-  @media (min-width: 480px) {
-    .event-button {
-      width: auto;
-    }
-  }
-
-  .event-btn {
-    padding: 10px 12px;
-    font-family: Rajdhani, sans-serif;
-    font-weight: 700;
-    font-size: 0.6rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: opacity 0.2s;
-    color: #fff;
-    white-space: nowrap;
-    width: 100%;
-  }
-
-  @media (min-width: 480px) {
-    .event-btn {
-      width: auto;
-    }
-  }
-
-  .event-card.type-tournament .event-btn { background: var(--red); }
-  .event-card.type-verlosung .event-btn { background: var(--green); }
-  .event-card.type-community .event-btn { background: var(--blue); }
-  .event-card.type-stream .event-btn { background: var(--purple); }
-  .event-card.type-challenge .event-btn { background: var(--orange); }
-  .event-card.type-sonstiges .event-btn { background: var(--gray); }
-
-  .event-btn:hover {
-    opacity: 0.8;
-  }
-
-  /* Streaming Plan */
-  .streaming-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
-
-  .stream-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 14px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .stream-time {
-    font-family: monospace;
-    font-size: 0.8rem;
-    color: var(--gold);
-    font-weight: 700;
-    min-width: 70px;
-    letter-spacing: 0.05em;
-  }
-
-  .stream-info {
-    flex: 1;
-  }
-
-  .stream-game {
-    font-family: Rajdhani, sans-serif;
-    font-weight: 700;
-    font-size: 0.9rem;
-    color: var(--text);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  .stream-platform {
-    font-size: 0.7rem;
-    color: var(--muted);
-    margin-top: 3px;
-  }
-
-  .stream-badge {
-    background: rgba(220,38,38,0.2);
-    color: var(--red);
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-size: 0.65rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    white-space: nowrap;
-  }
-
-  /* Modal */
-  .modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0,0,0,0.8);
-    z-index: 200;
-    align-items: center;
-    justify-content: center;
-    padding: 16px;
-  }
-
-  .modal.active {
-    display: flex;
-  }
-
-  .modal-content {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 24px;
-    max-width: 420px;
-    width: 100%;
-    max-height: 90vh;
-    overflow-y: auto;
-  }
-
-  .modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-  }
-
-  .modal-title {
-    font-family: Rajdhani, sans-serif;
-    font-weight: 700;
-    font-size: 1rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  .modal-close {
-    background: none;
-    border: none;
-    color: var(--text);
-    font-size: 1.2rem;
-    cursor: pointer;
-    transition: color 0.2s;
-  }
-
-  .modal-close:hover {
-    color: var(--gold);
-  }
-
-  .form-group {
-    margin-bottom: 16px;
-  }
-
-  .form-label {
-    font-size: 0.75rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--muted);
-    display: block;
-    margin-bottom: 6px;
-    font-weight: 600;
-  }
-
-  .form-input {
-    width: 100%;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px 12px;
-    color: var(--text);
-    font-family: inherit;
-    font-size: 0.9rem;
-    transition: border-color 0.2s;
-  }
-
-  .form-input:focus {
-    outline: none;
-    border-color: var(--gold);
-  }
-
-  .form-submit {
-    width: 100%;
-    padding: 12px;
-    background: var(--gold);
-    color: #000;
-    font-family: Rajdhani, sans-serif;
-    font-weight: 700;
-    font-size: 0.85rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: opacity 0.2s;
-  }
-
-  .form-submit:hover {
-    opacity: 0.8;
-  }
-
-  .form-status {
-    font-size: 0.75rem;
-    padding: 8px 12px;
-    border-radius: 6px;
-    margin-top: 12px;
-    text-align: center;
-  }
-
-  .form-status.success {
-    background: rgba(34,197,94,0.15);
-    color: var(--green);
-  }
-
-  .form-status.error {
-    background: rgba(220,38,38,0.15);
-    color: var(--red);
-  }
-
-  .empty {
-    text-align: center;
-    padding: 60px 0;
-    color: var(--muted);
-  }
-
-  .empty p {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.2em;
-    margin-top: 10px;
-  }
-
-  .cta {
-    text-align: center;
-    margin-top: 20px;
-  }
-
-  .cta p {
-    font-size: 0.7rem;
-    color: var(--muted);
-    margin-bottom: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
-  }
-
-  .cta-btn {
-    display: inline-block;
-    padding: 12px 24px;
-    background: rgba(201,168,76,0.15);
-    border: 1px solid rgba(201,168,76,0.35);
-    border-radius: 10px;
-    color: var(--gold);
-    font-family: Rajdhani, sans-serif;
-    font-weight: 700;
-    font-size: 0.85rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    text-decoration: none;
-    transition: background 0.2s;
-  }
-
-  .cta-btn:hover {
-    background: rgba(201,168,76,0.25);
-  }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .fade-in {
-    animation: fadeUp 0.4s ease both;
-  }
-
-  .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
-  .form-consent { display: flex; gap: 10px; align-items: flex-start; font-size: 0.75rem; color: var(--muted); line-height: 1.5; }
-  .form-consent input { margin-top: 3px; accent-color: var(--gold); flex-shrink: 0; }
-  .form-consent a { color: var(--gold); }
-  .form-submit:disabled { opacity: 0.5; cursor: wait; }
-  button:focus-visible, a:focus-visible, .form-input:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
-  /* Zurück zu allen Kanälen */
+  /* Zurueck zu allen Kanaelen */
   .nw-back {
     display: inline-flex; align-items: center; gap: 6px;
     min-height: 44px; padding: 0 16px 0 12px;
     border: 1px solid rgba(201, 168, 76, 0.4); border-radius: 999px;
     background: rgba(0, 0, 0, 0.55);
-    color: #e8e8e8; text-decoration: none; white-space: nowrap;
-    font-family: Rajdhani, 'Arial Narrow', system-ui, sans-serif;
+    color: var(--bone); text-decoration: none; white-space: nowrap;
+    font-family: var(--display);
     font-weight: 700; font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase;
-    position: relative; z-index: 5;
     transition: border-color 0.2s, color 0.2s, background 0.2s;
   }
-  .nw-back:hover, .nw-back:focus-visible { border-color: #c9a84c; color: #c9a84c; background: rgba(201, 168, 76, 0.08); }
+  .nw-back:hover, .nw-back:focus-visible { border-color: var(--gold); color: var(--gold); background: rgba(201, 168, 76, 0.08); }
   .nw-back svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* ---------- Seitenkopf, wie auf der Linkseite ---------- */
+  main {
+    width: 100%;
+    max-width: 620px;
+    margin: 0 auto;
+    padding: clamp(32px, 7vw, 56px) var(--pad) 64px;
+    display: flex; flex-direction: column; gap: clamp(32px, 6vw, 48px);
+  }
+
+  .page-head { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
+  .page-head img { width: 78px; height: auto; filter: drop-shadow(0 0 18px rgba(201,168,76,0.35)); animation: crownFloat 6s ease-in-out 1.2s infinite; }
+  .page-title {
+    font-family: var(--display); font-weight: 700;
+    font-size: clamp(1.9rem, 9vw, 3rem); line-height: 1;
+    letter-spacing: 0.12em; text-transform: uppercase;
+  }
+  .page-sub { font-size: 0.7rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--ash); }
+
+  /* ---------- Abschnitte, wie die Kollektionskoepfe im Shop ---------- */
+  .block { display: flex; flex-direction: column; gap: 14px; }
+  .block-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; border-top: 1px solid var(--line); padding-top: 18px; }
+  .block-head h2 {
+    font-family: var(--display); font-weight: 700; text-transform: uppercase;
+    font-size: clamp(1.6rem, 5.5vw, 2.4rem); line-height: 1; letter-spacing: 0.02em;
+  }
+  .block-meta { color: var(--ash); font-size: 0.88rem; white-space: nowrap; }
+
+  /* ---------- Karten, wie die Linkkarten ---------- */
+  .events-grid, .streaming-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+
+  .event-card, .stream-card {
+    position: relative;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 16px;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    box-shadow: 0 8px 20px -14px rgba(0,0,0,0.8);
+    transition: border-color 0.25s var(--ease), background 0.25s var(--ease), transform 0.25s var(--ease), box-shadow 0.25s var(--ease);
+  }
+  .event-card:hover, .stream-card:hover {
+    border-color: var(--gold);
+    background: rgba(201, 168, 76, 0.08);
+    transform: translateY(-2px);
+    box-shadow: 0 14px 28px -16px rgba(0,0,0,0.9);
+  }
+
+  /* Goldene Eckwinkel, das Markenzeichen aus Shop und Linkseite */
+  .event-card::after, .stream-card::after {
+    content: ''; position: absolute; inset: 5px; pointer-events: none;
+    --c: var(--gold); --l: 10px; --w: 2px;
+    background:
+      linear-gradient(var(--c), var(--c)) top left / var(--l) var(--w) no-repeat,
+      linear-gradient(var(--c), var(--c)) top left / var(--w) var(--l) no-repeat,
+      linear-gradient(var(--c), var(--c)) top right / var(--l) var(--w) no-repeat,
+      linear-gradient(var(--c), var(--c)) top right / var(--w) var(--l) no-repeat,
+      linear-gradient(var(--c), var(--c)) bottom left / var(--l) var(--w) no-repeat,
+      linear-gradient(var(--c), var(--c)) bottom left / var(--w) var(--l) no-repeat,
+      linear-gradient(var(--c), var(--c)) bottom right / var(--l) var(--w) no-repeat,
+      linear-gradient(var(--c), var(--c)) bottom right / var(--w) var(--l) no-repeat;
+    opacity: 0; transform: scale(1.06);
+    transition: opacity 0.25s, transform 0.35s var(--ease);
+    border-radius: 4px;
+  }
+  .event-card:hover::after, .event-card:focus-within::after,
+  .stream-card:hover::after, .stream-card:focus-within::after { opacity: 1; transform: none; }
+
+  /* ---------- Eventkarte ---------- */
+  .event-card { display: flex; flex-direction: column; gap: 12px; }
+  @media (min-width: 480px) {
+    .event-card { display: grid; grid-template-columns: 92px 1fr auto; gap: 16px; align-items: start; }
+  }
+
+  .event-time, .stream-time {
+    font-family: var(--display); font-weight: 700;
+    font-size: 1.05rem; line-height: 1.25;
+    letter-spacing: 0.04em; color: var(--gold);
+    font-variant-numeric: tabular-nums;
+  }
+  .event-time .t, .stream-time .t { display: block; color: var(--bone); font-size: 0.95rem; opacity: 0.75; }
+
+  .event-content { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .event-title {
+    font-family: var(--display); font-weight: 700;
+    font-size: 1.25rem; line-height: 1.1;
+    letter-spacing: 0.03em; text-transform: uppercase;
+  }
+
+  /* Typ als ruhige Marke statt als bunte Flaeche */
+  .event-type {
+    display: inline-flex; align-self: flex-start;
+    padding: 3px 9px; border-radius: 2px;
+    font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--t, var(--ash));
+    background: var(--t-soft, rgba(143,138,128,0.12));
+    border: 1px solid var(--t-edge, rgba(143,138,128,0.35));
+  }
+
+  .event-card.type-tournament { --t: var(--t-tournament); --t-soft: rgba(179,56,74,0.14);  --t-edge: rgba(179,56,74,0.45); }
+  .event-card.type-verlosung  { --t: var(--t-verlosung);  --t-soft: rgba(79,157,105,0.14); --t-edge: rgba(79,157,105,0.45); }
+  .event-card.type-community  { --t: var(--t-community);  --t-soft: rgba(77,122,181,0.14); --t-edge: rgba(77,122,181,0.45); }
+  .event-card.type-stream     { --t: var(--t-stream);     --t-soft: rgba(139,98,196,0.14); --t-edge: rgba(139,98,196,0.45); }
+  .event-card.type-challenge  { --t: var(--t-challenge);  --t-soft: rgba(194,128,60,0.14); --t-edge: rgba(194,128,60,0.45); }
+  .event-card.type-sonstiges  { --t: var(--t-sonstiges);  --t-soft: rgba(143,138,128,0.12); --t-edge: rgba(143,138,128,0.35); }
+
+  .event-prize-line { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+  .event-prize-label { color: var(--ash); font-size: 0.82rem; }
+  .event-prize { font-family: var(--display); font-weight: 700; font-size: 1.1rem; color: var(--gold); }
+
+  .event-desc { color: var(--ash); font-size: 0.9rem; line-height: 1.5; }
+
+  /* ---------- Goldener Knopf, identisch zum Shop ---------- */
+  .btn-gold {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-height: 44px; padding: 0 20px;
+    background: var(--gold); color: var(--black);
+    font-family: var(--display); font-weight: 700; font-size: 1rem; letter-spacing: 0.06em;
+    text-transform: uppercase; text-decoration: none;
+    border-radius: 2px;
+    transition: background 0.2s, transform 0.2s var(--ease);
+  }
+  .btn-gold:hover { background: var(--gold-hi); }
+  .btn-gold:active { transform: scale(0.98); }
+  .btn-gold.wide { width: 100%; min-height: 52px; font-size: 1.1rem; }
+  .btn-gold[disabled] { background: #3a3629; color: #8a8270; cursor: wait; }
+
+  .event-button { display: flex; }
+  .event-button .btn-gold { width: 100%; }
+  @media (min-width: 480px) { .event-button .btn-gold { width: auto; } }
+
+  /* ---------- Streaming Plan ---------- */
+  .stream-card { display: flex; align-items: center; gap: 16px; }
+  .stream-time { min-width: 92px; }
+  .stream-info { flex: 1; min-width: 0; }
+  .stream-game { font-family: var(--display); font-weight: 700; font-size: 1.15rem; letter-spacing: 0.03em; text-transform: uppercase; line-height: 1.15; }
+  .stream-platform { color: var(--ash); font-size: 0.85rem; }
+
+  .tag {
+    padding: 3px 9px; border-radius: 2px;
+    font-size: 0.75rem; font-weight: 600; white-space: nowrap;
+    background: var(--bone); color: var(--black);
+    border: 1px solid rgba(0,0,0,0.18);
+    transform: rotate(-2deg);
+  }
+  .tag.heute { background: var(--blood); color: var(--bone); border-color: rgba(232,232,232,0.3); animation: pulse 2s infinite; }
+
+  /* ---------- Ladeoptik, wie im Shop ---------- */
+  .skel { display: grid; gap: 10px; }
+  .skel-card { position: relative; overflow: hidden; height: 108px; border: 1px solid var(--line); border-radius: 10px; background: var(--night); }
+  .skel-card::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(201,168,76,0.1), transparent);
+    transform: translateX(-100%);
+    animation: shimmer 1.6s ease-in-out infinite;
+  }
+  .skel-card:nth-child(2)::after { animation-delay: 0.18s; }
+  .skel-card:nth-child(3)::after { animation-delay: 0.36s; }
+  @keyframes shimmer { to { transform: translateX(100%); } }
+
+  .note { color: var(--ash); font-size: 0.95rem; padding: 24px 0; text-align: center; }
+  .note.error { color: #c98a8a; }
+
+  .empty { text-align: center; padding: 48px 0; color: var(--ash); display: grid; gap: 14px; justify-items: center; }
+  .empty h2 { font-family: var(--display); font-weight: 700; text-transform: uppercase; font-size: clamp(1.6rem, 5.5vw, 2.2rem); line-height: 1; color: var(--bone); }
+  .empty p { max-width: 34ch; }
+
+  /* ---------- Aufruf ---------- */
+  .cta { border-top: 1px solid var(--line); padding-top: clamp(28px, 5vw, 40px); display: grid; gap: 16px; justify-items: center; text-align: center; }
+  .cta h2 { font-family: var(--display); font-weight: 700; text-transform: uppercase; font-size: clamp(1.5rem, 5vw, 2.1rem); line-height: 1; }
+  .cta p { color: var(--ash); max-width: 34ch; }
+
+  /* ---------- Fuss, wie im Shop ---------- */
+  .foot { border-top: 1px solid var(--line); padding: 56px var(--pad) 44px; display: grid; gap: 28px; justify-items: center; text-align: center; }
+  .foot-brand { display: flex; align-items: center; gap: 14px; }
+  .foot-brand img { width: 36px; height: auto; }
+  .foot-brand p { font-family: var(--display); font-weight: 700; font-size: 1.05rem; text-transform: uppercase; letter-spacing: 0.08em; }
+  .foot-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 22px; }
+  .foot-links a { color: var(--ash); text-decoration: none; font-size: 0.9rem; padding: 11px 4px; transition: color 0.2s; }
+  .foot-links a:hover, .foot-links a:focus-visible { color: var(--gold); }
+  .foot-copy { color: #5f5a52; font-size: 0.82rem; }
+
+  /* ---------- Anmeldung, wie die Produktansicht im Shop ---------- */
+  .scrim { position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,0.72); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); animation: fadeIn 0.25s ease; }
+  .sheet {
+    position: fixed; z-index: 70; left: 50%; top: 50%;
+    width: min(460px, calc(100vw - 32px)); max-height: calc(100vh - 48px);
+    transform: translate(-50%, -50%);
+    background: var(--night); border: 1px solid var(--line);
+    overflow: auto;
+    animation: sheetIn 0.4s var(--ease);
+  }
+  @keyframes sheetIn { from { opacity: 0; transform: translate(-50%, -47%); } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 20px; border-bottom: 1px solid var(--line); }
+  .sheet-head h2 { font-family: var(--display); font-weight: 700; text-transform: uppercase; font-size: 1.5rem; line-height: 1.1; }
+  .x { flex: none; width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; transition: background 0.2s; }
+  .x:hover { background: rgba(255,255,255,0.06); }
+  .x svg { width: 20px; height: 20px; stroke: var(--bone); stroke-width: 1.8; stroke-linecap: round; fill: none; }
+
+  .sheet-body { padding: clamp(20px, 4vw, 28px) 20px 24px; display: grid; gap: 18px; }
+  .form-group { display: grid; gap: 8px; }
+  .form-label { font-size: 0.9rem; color: var(--ash); }
+  .form-input {
+    width: 100%; min-height: 46px;
+    background: var(--black);
+    border: 1px solid rgba(232,232,232,0.22); border-radius: 2px;
+    padding: 10px 12px;
+    color: var(--bone); font-family: inherit; font-size: 0.95rem;
+    transition: border-color 0.2s;
+  }
+  .form-input::placeholder { color: #5f5a52; }
+  .form-input:hover { border-color: rgba(232,232,232,0.4); }
+  .form-input:focus { outline: none; border-color: var(--gold); }
+
+  .form-consent { display: flex; gap: 10px; align-items: flex-start; font-size: 0.85rem; color: var(--ash); line-height: 1.5; }
+  .form-consent input { margin-top: 4px; accent-color: var(--gold); flex-shrink: 0; width: 16px; height: 16px; }
+  .form-consent a { color: var(--gold); text-underline-offset: 3px; }
+
+  .form-status { min-height: 1.2em; font-size: 0.88rem; color: var(--gold); text-align: center; }
+  .form-status.success { color: var(--t-verlosung); }
+  .form-status.error { color: #c98a8a; }
+
+  .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+  /* ---------- Bewegung ---------- */
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+  @keyframes crownFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.65; } }
+
+  .fade-in { animation: fadeUp 0.5s var(--ease) both; }
+  .fade-in:nth-child(1) { animation-delay: 0.04s; }
+  .fade-in:nth-child(2) { animation-delay: 0.10s; }
+  .fade-in:nth-child(3) { animation-delay: 0.16s; }
+  .fade-in:nth-child(4) { animation-delay: 0.22s; }
+  .fade-in:nth-child(5) { animation-delay: 0.28s; }
+  .fade-in:nth-child(n+6) { animation-delay: 0.34s; }
+
+  /* ---------- Mobil ---------- */
+  @media (max-width: 560px) {
+    .brand span { font-size: 1rem; }
+    .nw-back { font-size: 0.78rem; padding: 0 12px 0 9px; }
+    .sheet {
+      top: auto; bottom: 0; left: 0; transform: none;
+      width: 100%; max-height: 92vh;
+      border-width: 1px 0 0;
+      animation: sheetUp 0.4s var(--ease);
+    }
+    @keyframes sheetUp { from { transform: translateY(100%); } }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-delay: 0ms !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+    /* Endlosanimationen brauchen ein echtes Aus, nicht nur eine kurze Dauer. */
+    .page-head img, .skel-card::after, .tag.heute { animation: none !important; }
+  }
 </style>
 </head>
 <body>
 
-<canvas id="particle-canvas"></canvas>
+<canvas id="particle-canvas" aria-hidden="true"></canvas>
 
-<header>
-  <div class="header-left">
-    <img class="header-logo" src="logo.png" alt="NightWither Logo" />
-    <div>
-      <div class="header-sub">NightWither Unity</div>
-      <div class="header-title">Events & News</div>
-    </div>
-  </div>
-  <a class="nw-back" href="https://nightwither.de" aria-label="Zurück zu allen Kanälen von NightWither"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>Alle Kanäle</a>
+<a class="skip" href="#events">Zu den Events springen</a>
+
+<header class="bar" id="bar">
+  <a class="brand" href="https://nightwither.de" aria-label="NightWither Unity, alle Kanäle">
+    <img src="crown.webp" alt="" width="261" height="287">
+    <span>NightWither</span>
+  </a>
+  <a class="nw-back" href="https://nightwither.de" aria-label="Zurück zu allen Kanälen von NightWither">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>Alle Kanäle
+  </a>
 </header>
 
-<main>
+<main id="events">
 
-  <div id="loading" class="loading">
-    <div class="spinner"></div>
-    <span style="font-size:0.7rem;letter-spacing:0.2em;text-transform:uppercase;font-family:monospace">Lade Events...</span>
+  <div class="page-head">
+    <img src="crown.webp" alt="" width="261" height="287">
+    <h1 class="page-title">Events &amp; News</h1>
+    <p class="page-sub">Turniere, Verlosungen und Streams</p>
   </div>
 
-  <section id="eventsSection" style="display:none;flex-direction:column;gap:12px">
-    <div class="section-label"><span class="dot" style="background: var(--red)"></span>Anstehende Events</div>
+  <div id="loading" class="skel" aria-live="polite" aria-busy="true">
+    <span class="skel-card"></span>
+    <span class="skel-card"></span>
+    <span class="skel-card"></span>
+  </div>
+
+  <section id="eventsSection" class="block" aria-labelledby="eventsTitle" hidden>
+    <div class="block-head">
+      <h2 id="eventsTitle">Anstehende Events</h2>
+      <p class="block-meta" id="eventsMeta"></p>
+    </div>
     <div id="eventsList" class="events-grid"></div>
   </section>
 
-  <section id="streamingSection" style="display:none;flex-direction:column;gap:12px">
-    <div class="section-label"><span class="dot" style="background: var(--gold)"></span>Streaming Plan</div>
+  <section id="streamingSection" class="block" aria-labelledby="streamTitle" hidden>
+    <div class="block-head">
+      <h2 id="streamTitle">Streaming Plan</h2>
+      <p class="block-meta" id="streamMeta"></p>
+    </div>
     <div id="streamingList" class="streaming-grid"></div>
   </section>
 
-  <div id="emptyState" style="display:none" class="empty">
-    <div style="font-size:2rem">🏆</div>
-    <p>Keine aktuellen Events</p>
+  <div id="emptyState" class="empty" hidden>
+    <h2>Gerade ist es still</h2>
+    <p>Aktuell steht kein Event an. Auf dem Discord Server erfährst du als Erstes, wenn das nächste kommt.</p>
   </div>
 
-  <div class="cta">
-    <p>Fragen? Schau auf Discord vorbei!</p>
-    <a href="https://discord.nightwither.de" class="cta-btn">💬 Zum Discord</a>
-  </div>
+  <section class="cta" aria-labelledby="ctaTitle">
+    <h2 id="ctaTitle">Fragen?</h2>
+    <p>Schreib uns auf dem Discord Server. Dort läuft die Organisation für jedes Event.</p>
+    <a class="btn-gold" href="https://discord.nightwither.de" target="_blank" rel="noopener noreferrer">Zum Discord</a>
+  </section>
 
 </main>
 
-<!-- Anmeldeformular Modal -->
-<div id="registrationModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-  <div class="modal-content">
-    <div class="modal-header">
-      <div class="modal-title" id="modalTitle">Anmelden</div>
-      <button class="modal-close" id="modalClose" type="button" aria-label="Schließen">&times;</button>
+<footer class="foot">
+  <div class="foot-brand">
+    <img src="crown.webp" alt="" width="261" height="287">
+    <p>NightWither Unity</p>
+  </div>
+  <nav class="foot-links" aria-label="Rechtliches und Links">
+    <a href="https://nightwither.de">Alle Kanäle</a>
+    <a href="https://shop.nightwither.de">Shop</a>
+    <a href="https://discord.nightwither.de" target="_blank" rel="noopener noreferrer">Discord</a>
+    <a href="https://impressum.nightwither.de">Impressum</a>
+    <a href="https://datenschutz.nightwither.de">Datenschutz</a>
+  </nav>
+  <p class="foot-copy">© 2026 NightWither Unity</p>
+</footer>
+
+<!-- Anmeldung -->
+<div class="scrim" id="scrim" hidden></div>
+<div class="sheet" id="registrationModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" hidden>
+  <div class="sheet-head">
+    <h2 id="modalTitle">Anmelden</h2>
+    <button class="x" id="modalClose" type="button" data-close aria-label="Schließen">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+
+  <form id="registrationForm" class="sheet-body" novalidate>
+    <div class="form-group">
+      <label class="form-label" for="fUsername">Username</label>
+      <input type="text" id="fUsername" class="form-input" maxlength="40" autocomplete="nickname" required />
     </div>
 
-    <form id="registrationForm" novalidate>
-      <div class="form-group">
-        <label class="form-label" for="fUsername">Username</label>
-        <input type="text" id="fUsername" class="form-input" maxlength="40" autocomplete="nickname" required />
-      </div>
+    <div class="form-group">
+      <label class="form-label" for="fDiscord">Discord Name</label>
+      <input type="text" id="fDiscord" class="form-input" maxlength="40" placeholder="z.B. nightwither" required />
+    </div>
 
-      <div class="form-group">
-        <label class="form-label" for="fDiscord">Discord Name</label>
-        <input type="text" id="fDiscord" class="form-input" maxlength="40" placeholder="z.B. nightwither" required />
-      </div>
+    <div id="gameName-group" class="form-group" hidden>
+      <label class="form-label" for="fGame">In Game Name</label>
+      <input type="text" id="fGame" class="form-input" maxlength="40" placeholder="z.B. NightWither#1234567" />
+    </div>
 
-      <div id="gameName-group" class="form-group" style="display:none">
-        <label class="form-label" for="fGame">In Game Name</label>
-        <input type="text" id="fGame" class="form-input" maxlength="40" placeholder="z.B. NightWither#1234567" />
-      </div>
+    <div class="hp" aria-hidden="true">
+      <label for="fWebsite">Webseite</label>
+      <input type="text" id="fWebsite" tabindex="-1" autocomplete="off" />
+    </div>
 
-      <div class="hp" aria-hidden="true">
-        <label for="fWebsite">Webseite</label>
-        <input type="text" id="fWebsite" tabindex="-1" autocomplete="off" />
-      </div>
+    <label class="form-consent">
+      <input type="checkbox" id="fConsent" required />
+      <span>Ich bin einverstanden, dass meine Angaben zur Organisation des Events an den Discord Server von NightWither Unity übermittelt werden. Mehr dazu in der <a href="https://datenschutz.nightwither.de" target="_blank" rel="noopener noreferrer">Datenschutzerklärung</a>.</span>
+    </label>
 
-      <div class="form-group">
-        <label class="form-consent">
-          <input type="checkbox" id="fConsent" required />
-          <span>Ich bin einverstanden, dass meine Angaben zur Organisation des Events an den Discord Server von NightWither Unity übermittelt werden. Mehr dazu in der <a href="https://datenschutz.nightwither.de" target="_blank" rel="noopener noreferrer">Datenschutzerklärung</a>.</span>
-        </label>
-      </div>
-
-      <div class="form-group">
-        <button type="submit" id="fSubmit" class="form-submit">Anmelden</button>
-      </div>
-
-      <div id="formStatus" class="form-status" role="status"></div>
-    </form>
-  </div>
+    <button type="submit" id="fSubmit" class="btn-gold wide">Anmelden</button>
+    <p id="formStatus" class="form-status" role="status"></p>
+  </form>
 </div>
 
-<script src="events.js?v=20260910c"></script>
+<script src="events.js?v=20260911a"></script>
 
 </body>
 </html>

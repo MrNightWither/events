@@ -234,7 +234,7 @@ $('registrationForm').addEventListener('submit', async (e) => {
     setStatus('Anmeldung erfolgreich.', 'success');
     setTimeout(closeModal, 1500);
   } catch (err) {
-    setStatus('Anmeldung fehlgeschlagen. Versuch es später oder melde dich auf Discord.', 'error');
+    setStatus('Anmeldung fehlgeschlagen. Versuch es später, melde dich auf Discord oder schreib an nwu.business@nightwither.de.', 'error');
   } finally {
     btn.disabled = false;
   }

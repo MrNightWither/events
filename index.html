@@ -316,6 +316,9 @@
   .sheet-body { padding: clamp(20px, 4vw, 28px) 20px 24px; display: grid; gap: 18px; }
   .form-group { display: grid; gap: 8px; }
   .form-label { font-size: 0.9rem; color: var(--ash); }
+  .form-optional { font-size: 0.8rem; opacity: 0.75; }
+  /* Turnierfelder sind gebuendelt, sollen aber denselben Abstand haben wie die anderen Felder */
+  #gameName-group:not([hidden]) { display: grid; gap: 18px; }
   .form-input {
     width: 100%; min-height: 46px;
     background: var(--black);
@@ -471,9 +474,19 @@
       <input type="text" id="fDiscord" class="form-input" maxlength="40" placeholder="z.B. nightwither" required />
     </div>
 
-    <div id="gameName-group" class="form-group" hidden>
-      <label class="form-label" for="fGame">In Game Name</label>
-      <input type="text" id="fGame" class="form-input" maxlength="40" placeholder="z.B. NightWither#1234567" />
+    <div id="gameName-group" hidden>
+      <div class="form-group">
+        <label class="form-label" for="fGame">Activision ID</label>
+        <input type="text" id="fGame" class="form-input" maxlength="40" placeholder="z.B. NightWither#1234567" autocomplete="off" spellcheck="false" />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="fIngame">Ingame Name <span class="form-optional">(optional)</span></label>
+        <input type="text" id="fIngame" class="form-input" maxlength="30" placeholder="leer = Name aus der Activision ID" autocomplete="off" />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="fTeam">Team <span class="form-optional">(nur bei Duo, Trio &amp; Squad)</span></label>
+        <input type="text" id="fTeam" class="form-input" maxlength="30" placeholder="Teamname" autocomplete="off" />
+      </div>
     </div>
 
     <div class="hp" aria-hidden="true">
@@ -483,7 +496,7 @@
 
     <label class="form-consent">
       <input type="checkbox" id="fConsent" required />
-      <span>Ich bin einverstanden, dass meine Angaben zur Organisation des Events an den Discord Server von NightWither Unity übermittelt werden. Mehr dazu in der <a href="https://datenschutz.nightwither.de" target="_blank" rel="noopener noreferrer">Datenschutzerklärung</a>.</span>
+      <span>Ich bin einverstanden, dass meine Angaben zur Organisation des Events an den Discord Server von NightWither Unity übermittelt und bei Turnieren zusätzlich in unserer Teilnehmerliste (Google Sheets) gespeichert werden. Öffentlich angezeigt werden dabei nur Ingame Name, Team und Punkte. Mehr dazu in der <a href="https://datenschutz.nightwither.de" target="_blank" rel="noopener noreferrer">Datenschutzerklärung</a>.</span>
     </label>
 
     <button type="submit" id="fSubmit" class="btn-gold wide">Anmelden</button>
@@ -491,7 +504,7 @@
   </form>
 </div>
 
-<script src="events.js?v=20260913a"></script>
+<script src="events.js?v=20260921a"></script>
 
 </body>
 </html>

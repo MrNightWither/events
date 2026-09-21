@@ -164,10 +164,12 @@ async function load() {
 
 // ---------- Anmeldung ----------
 let currentEventId = null;
+let currentEventType = null;
 let lastOpener = null;
 
 function openModal(eventId, eventType, eventTitle) {
   currentEventId = eventId;
+  currentEventType = eventType;
   lastOpener = document.activeElement;
   $('modalTitle').textContent = 'Anmelden: ' + eventTitle;
   $('gameName-group').hidden = eventType !== 'tournament';
@@ -184,6 +186,7 @@ function closeModal() {
   $('registrationForm').reset();
   setStatus('', '');
   currentEventId = null;
+  currentEventType = null;
   if (lastOpener) lastOpener.focus();
 }
 
@@ -202,9 +205,16 @@ $('registrationForm').addEventListener('submit', async (e) => {
   const username = $('fUsername').value.trim();
   const discordName = $('fDiscord').value.trim();
   const gameName = $('fGame').value.trim();
+  const turnier = currentEventType === 'tournament';
 
   if (username.length < 2 || discordName.length < 2) {
     setStatus('Bitte Username und Discord Name ausfüllen.', 'error');
+    return;
+  }
+  // Activision ID: Name, Raute, Ziffern – genauso prüft es der Worker
+  if (turnier && !/^[^#\s][^#]{0,29}#\d{4,10}$/.test(gameName)) {
+    setStatus('Bitte deine Activision ID im Format Name#1234567 eintragen.', 'error');
+    $('fGame').focus();
     return;
   }
   if (!$('fConsent').checked) {
@@ -226,13 +236,29 @@ $('registrationForm').addEventListener('submit', async (e) => {
         username: username.slice(0, 40),
         discordName: discordName.slice(0, 40),
         gameName: gameName.slice(0, 40),
+        ...(turnier ? {
+          activisionId: gameName.slice(0, 40),
+          ingameName: $('fIngame').value.trim().slice(0, 30),
+          team: $('fTeam').value.trim().slice(0, 30)
+        } : {}),
         consent: true,
         website: $('fWebsite').value
       })
     });
+    const antwort = await res.text();
+    if (res.status === 409) {
+      setStatus('Mit dieser Activision ID bist du für dieses Turnier schon angemeldet.', 'error');
+      return;
+    }
+    if (res.status === 400 && antwort.includes('Activision')) {
+      setStatus('Bitte deine Activision ID im Format Name#1234567 eintragen.', 'error');
+      return;
+    }
     if (!res.ok) throw new Error('Status ' + res.status);
-    setStatus('Anmeldung erfolgreich.', 'success');
-    setTimeout(closeModal, 1500);
+    setStatus(antwort === 'WARTELISTE'
+      ? 'Angemeldet – das Turnier ist voll, du stehst auf der Warteliste.'
+      : 'Anmeldung erfolgreich.', 'success');
+    setTimeout(closeModal, antwort === 'WARTELISTE' ? 3500 : 1500);
   } catch (err) {
     setStatus('Anmeldung fehlgeschlagen. Versuch es später, melde dich auf Discord oder schreib an nwu.business@nightwither.de.', 'error');
   } finally {
